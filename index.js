@@ -1,3 +1,4 @@
+import events from 'node:events';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -10,7 +11,6 @@ import {fileTypeFromBuffer} from 'file-type';
 import filenamify from 'filenamify';
 import getStream from 'get-stream';
 import got from 'got';
-import {pEvent} from 'p-event';
 
 const defaultOptions = {
 	got: {
@@ -59,6 +59,14 @@ const getFilename = async (response, data) => {
 	return filename;
 };
 
+const filterEvents = async (name, listener) => {
+	for await (const [message] of events.on(name, listener)) {
+		if (message) {
+			return message;
+		}
+	}
+};
+
 const download = (uri, output, options) => {
 	if (typeof output === 'object') {
 		options = output;
@@ -69,7 +77,7 @@ const download = (uri, output, options) => {
 
 	const stream = got.stream(uri, options.got);
 
-	const promise = pEvent(stream, 'response')
+	const promise = filterEvents(stream, 'response')
 		.then(response => {
 			const encoding = options.got.responseType === 'buffer' ? 'buffer' : options.got.encoding;
 			return Promise.all([getStream(stream, {encoding}), response]);
