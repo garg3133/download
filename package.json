@@ -1,5 +1,5 @@
 {
-	"name": "@xhmikosr/downloader",
+	"name": "download",
 	"version": "14.0.0",
 	"description": "Download and extract files",
 	"license": "MIT",
